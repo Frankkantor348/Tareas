@@ -1,0 +1,56 @@
+﻿  @model Tareas.Models.Tarea
+
+@{
+    ViewData["Title"] = "Crear Nueva Tarea";
+}
+<h1 class="text-center">Administrar Tareas</h1>
+
+<!-- Botón de crear nueva tarea -->
+<div class="d-flex justify-content-center mb-4">
+    <a asp-action="Crear" asp-controller="Inicio" class="btn btn-secondary btn-lg"
+       aria-label="Crear nueva tarea" title="Haz clic para crear una nueva tarea">
+        <i class="bi bi-file-plus-fill"></i> Nueva Tarea
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border">
+            <div class="card-header bg-dark">
+                <h3 class="text-white"><strong>Crear Nueva Tarea</strong></h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Crear" method="POST">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="Nombre" class="control-label"></label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Ingresa Tarea" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Descripcion" class="control-label"></label>
+                        <input asp-for="Descripcion" class="form-control" placeholder="Ingresa Descripción" />
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <button type="submit" class="btn btn-secondary d-block mx-auto">
+                            <i class="fa fa-user" aria-hidden="true"></i> Crear Tarea
+                        </button>
+                    </div>
+                </form>
+
+
+                <div class="text-center mt-3">
+                    <a asp-controller="Inicio" asp-action="Index">Volver</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+

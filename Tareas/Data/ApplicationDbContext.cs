@@ -11,6 +11,6 @@ namespace Tareas.Data
         {
         }
         //poner aqui los modelos creados
-        public DbSet<Tarea> tareas { get; set; }
+        public DbSet<Tarea> Tarea { get; set; }
     }
 }
