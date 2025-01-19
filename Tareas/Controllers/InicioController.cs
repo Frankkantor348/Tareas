@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics;
+using System.Linq;  // Para usar Any()
 using System.Threading.Tasks;
 using Tareas.Data;
 using Tareas.Models;
@@ -44,22 +45,102 @@ namespace Tareas.Controllers
 
             try
             {
-                // Agregar la fecha de creación si está definida en el modelo
-                //tarea.FechaCreacion = DateTime.Now;
-
-                // Agregar la tarea a la base de datos
                 _contexto.Tarea.Add(tarea);
                 await _contexto.SaveChangesAsync();
-
-                // Redirigir a la vista principal (índice)
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                // Aquí podrías registrar el error o mostrar un mensaje de error genérico
                 ModelState.AddModelError(string.Empty, "Ocurrió un error al guardar la tarea.");
                 return View(tarea);
             }
+        }
+
+        // Acción GET para ver los detalles de una tarea
+        [HttpGet]
+        public async Task<IActionResult> Detalles(int id)
+        {
+            var tarea = await _contexto.Tarea.FindAsync(id);
+            if (tarea == null)
+            {
+                return NotFound();  // Si no se encuentra la tarea, devolver error 404
+            }
+            return View(tarea);  // Devolvemos la vista con la tarea
+        }
+
+
+        // Acción GET para editar una tarea
+        [HttpGet]
+        public async Task<IActionResult> Editar(int id)
+        {
+            var tarea = await _contexto.Tarea.FindAsync(id);
+            if (tarea == null)
+            {
+                return NotFound();  // Si no se encuentra la tarea, devolver error 404
+            }
+            return View(tarea);
+        }
+
+        // Acción POST para procesar la edición de una tarea
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Editar(int id, Tarea tarea)
+        {
+            if (id != tarea.Id)
+            {
+                return NotFound();  // Si el ID no coincide, devolver error 404
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(tarea);  // Si no es válido, regresar al formulario de edición
+            }
+
+            try
+            {
+                _contexto.Update(tarea);  // Actualizamos la tarea
+                await _contexto.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));  // Redirigimos al índice
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_contexto.Tarea.Any(t => t.Id == id))
+                {
+                    return NotFound();  // Si la tarea no existe, devolver error 404
+                }
+                else
+                {
+                    throw;  // Propagamos cualquier otro error
+                }
+            }
+        }
+
+        // Acción GET para eliminar una tarea
+        [HttpGet]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var tarea = await _contexto.Tarea.FindAsync(id);
+            if (tarea == null)
+            {
+                return NotFound();  // Si no se encuentra la tarea, devolver error 404
+            }
+            return View(tarea);
+        }
+
+        // Acción POST para procesar la eliminación de una tarea
+        [HttpPost, ActionName("Eliminar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarConfirmado(int id)
+        {
+            var tarea = await _contexto.Tarea.FindAsync(id);
+            if (tarea == null)
+            {
+                return NotFound();  // Si no se encuentra la tarea, devolver error 404
+            }
+
+            _contexto.Tarea.Remove(tarea);  // Eliminamos la tarea
+            await _contexto.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));  // Redirigimos al índice
         }
 
         // Acción para la privacidad (de ejemplo)
@@ -76,6 +157,7 @@ namespace Tareas.Controllers
         }
     }
 }
+
 
 
 

@@ -1,69 +1,42 @@
-﻿@model IEnumerable<Tareas.Models.Tarea>
+﻿@model IEnumerable<Tareas.Models.Tarea>  
 
-@{
-    ViewData["Title"] = "Lista de Tareas";
-}
-<h1 class="text-center">Administrar Tareas</h1>
+<h1>Lista de Tareas</h1>
 
-<!-- Botón de crear nueva tarea -->
-<div class="d-flex justify-content-center mb-4">
-    <a asp-action="Crear" asp-controller="Inicio" class="btn btn-secondary btn-lg"
-       aria-label="Crear nueva tarea" title="Haz clic para crear una nueva tarea">
-        <i class="bi bi-file-plus-fill"></i> Nueva Tarea
-    </a>
-</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarea in Model)
+        {
+            <tr>
+                <td>@tarea.Nombre</td>
+                <td>@tarea.Descripcion</td>
 
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card border">
-            <div class="card-header bg-dark">
-                <h3 class="text-white"><strong>Lista de Tareas</strong></h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    @if (Model.Any())
-                    {
-                        <table class="table table-bordered" id="tblTarea" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>@Html.DisplayNameFor(model => model.Id)</th>
-                                    <th>@Html.DisplayNameFor(model => model.Nombre)</th>
-                                    <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td>@Html.DisplayFor(modelItem => item.Id)</td>
-                                        <td>@Html.DisplayFor(modelItem => item.Nombre)</td>
-                                        <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
-                                        <td>
-                                            <a class="btn btn-warning" asp-action="Editar" asp-route-id="@item.Id">
-                                                <i class="bi bi-pencil"></i> Editar
-                                            </a>
-                                            <a class="btn btn-secondary" asp-action="Detalle" asp-route-id="@item.Id">
-                                                <i class="bi bi-info-circle"></i> Detalle
-                                            </a>
-                                            <a class="btn btn-danger" asp-action="Borrar" asp-route-id="@item.Id">
-                                                <i class="bi bi-trash"></i> Borrar
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <p>No hay registros</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                <td>
+                    <a href="@Url.Action("Detalles", "Inicio", new { id = tarea.Id })" class="btn btn-info">Detalles</a> |
+                    <a href="@Url.Action("Editar", "Inicio", new { id = tarea.Id })" class="btn btn-warning">Editar</a> |
+
+                    <!-- Formulario para eliminar -->
+                    <form action="@Url.Action("Eliminar", "Inicio", new { id = tarea.Id })" method="post" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+
+        
+    </tbody>
+</table>
+
+<!-- Enlace para crear una nueva tarea -->
+<a href="@Url.Action("Crear", "Inicio")" class="btn btn-success">Crear Nueva Tarea</a>
+
 
 
 

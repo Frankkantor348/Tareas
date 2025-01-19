@@ -1,0 +1,16 @@
+﻿@model Tareas.Models.Tarea
+
+<h1>Eliminar Tarea</h1>
+
+<p>¿Estás seguro de que deseas eliminar la tarea <strong>@Model.Nombre</strong>?</p>
+
+<form method="post">
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a href="@Url.Action("Index", "Inicio")" class="btn btn-secondary">Cancelar</a>
+</form>
+
+
+<p>
+    <a href="@Url.Action("Index", "Inicio")">Cancelar</a>
+</p>
+

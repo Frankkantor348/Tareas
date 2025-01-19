@@ -1,0 +1,19 @@
+﻿@model Tareas.Models.Tarea
+
+<h1>Detalles de la tarea</h1>
+
+<div>
+    <strong>Nombre:</strong> @Model.Nombre
+</div>
+<div>
+    <strong>Descripción:</strong> @Model.Descripcion
+</div>
+
+
+<p>
+    <a href="@Url.Action("Editar", "Inicio", new { id = Model.Id })">Editar</a> |
+    <a href="@Url.Action("Eliminar", "Inicio", new { id = Model.Id })">Eliminar</a> |
+    <a href="@Url.Action("Index", "Inicio")">Volver a la lista</a>
+</p>
+
+

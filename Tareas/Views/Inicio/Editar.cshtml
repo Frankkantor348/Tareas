@@ -1,0 +1,31 @@
+﻿@model Tareas.Models.Tarea  
+
+@{
+    ViewData["Title"] = "Editar Tarea";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- Formulario para editar una tarea -->
+<form method="post" class="form-group">
+    @Html.AntiForgeryToken() <!-- Agrega un token de antifalsificación para seguridad -->
+
+    <!-- Campo para el Nombre de la Tarea -->
+    <div class="form-group">
+        <label for="Nombre">Nombre</label>
+        <input type="text" id="Nombre" name="Nombre" class="form-control" value="@Model.Nombre" required />
+    </div>
+
+    <!-- Campo para la Descripción de la Tarea -->
+    <div class="form-group">
+        <label for="Descripcion">Descripción</label>
+        <textarea id="Descripcion" name="Descripcion" class="form-control" rows="4" required>@Model.Descripcion</textarea>
+    </div>
+
+    <!-- Botón para guardar los cambios -->
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="@Url.Action("Index", "Inicio")" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
