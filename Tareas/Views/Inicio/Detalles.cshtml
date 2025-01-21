@@ -1,19 +1,21 @@
 ﻿@model Tareas.Models.Tarea
 
-<h1>Detalles de la tarea</h1>
+@{
+    ViewBag.Title = "Detalles de la Tarea";
+}
+
+<h2>Detalles de la Tarea</h2>
 
 <div>
-    <strong>Nombre:</strong> @Model.Nombre
+    <h3>@Model.Nombre</h3>
+    <p><strong>Fecha de Creación:</strong> @Model.FechaCreacion.ToString("yyyy-MM-dd")</p>
 </div>
+
 <div>
-    <strong>Descripción:</strong> @Model.Descripcion
+    <a href="@Url.Action("Editar", "Inicio", new { id = Model.Id })" class="btn btn-primary">Editar</a>
+    <a href="@Url.Action("Eliminar", "Inicio", new { id = Model.Id })" class="btn btn-danger">Eliminar</a>
+    <a href="@Url.Action("Index", "Inicio")" class="btn btn-secondary">Volver</a>
 </div>
 
-
-<p>
-    <a href="@Url.Action("Editar", "Inicio", new { id = Model.Id })">Editar</a> |
-    <a href="@Url.Action("Eliminar", "Inicio", new { id = Model.Id })">Eliminar</a> |
-    <a href="@Url.Action("Index", "Inicio")">Volver a la lista</a>
-</p>
 
 

@@ -7,29 +7,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap5.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet">
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="@Url.Action("Index", "Inicio")">Tareas</a>
+                <a class="navbar-brand" href="@Url.Action("Index", "Inicio")">INICIO</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" href="@Url.Action("Index", "Inicio")">
-                                Inicio
-                                <span class="visually-hidden">(current)</span>
-                            </a>
+                           @*  <a class="nav-link active" href="@Url.Action("Index", "Inicio")">
+                                Inicio *@
+                            @*     <span class="visually-hidden">(current)</span>
+                            </a> *@
                         </li>
                     </ul>
                     <partial name="_LoginPartial" />
-                    <form class="d-flex" action="@Url.Action("Index", "Inicio")" method="get">
+                    @* <form class="d-flex" action="@Url.Action("Index", "Inicio")" method="get">
                         <input class="form-control me-sm-2" type="search" placeholder="Buscar tarea" name="search" />
                         <button class="btn btn-secondary my-2 my-sm-0" type="submit">Buscar</button>
-                    </form>
+                    </form> *@
                 </div>
             </div>
         </nav>
@@ -50,6 +51,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.js"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

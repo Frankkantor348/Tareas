@@ -40,12 +40,23 @@ namespace Tareas.Controllers
         {
             if (!ModelState.IsValid)
             {
+                // Si no se ha especificado una fecha, asignar la fecha actual
+                if (tarea.FechaCreacion == DateTime.MinValue)
+                {
+                    tarea.FechaCreacion = DateTime.Now;
+                }
                 return View(tarea);  // Regresar el formulario con los errores de validación
             }
 
             try
             {
-                _contexto.Tarea.Add(tarea);
+                // Si la fecha de creación es nula o no es válida, asignar la fecha actual
+                if (tarea.FechaCreacion == DateTime.MinValue)
+                {
+                    tarea.FechaCreacion = DateTime.Now;
+                }
+
+                _contexto.Tarea.Add(tarea);  // Agregar la tarea al contexto
                 await _contexto.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -67,7 +78,6 @@ namespace Tareas.Controllers
             }
             return View(tarea);  // Devolvemos la vista con la tarea
         }
-
 
         // Acción GET para editar una tarea
         [HttpGet]
@@ -98,6 +108,12 @@ namespace Tareas.Controllers
 
             try
             {
+                // Si la fecha de creación es nula o no es válida, asignar la fecha actual
+                if (tarea.FechaCreacion == DateTime.MinValue)
+                {
+                    tarea.FechaCreacion = DateTime.Now;
+                }
+
                 _contexto.Update(tarea);  // Actualizamos la tarea
                 await _contexto.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));  // Redirigimos al índice
@@ -157,6 +173,7 @@ namespace Tareas.Controllers
         }
     }
 }
+
 
 
 
