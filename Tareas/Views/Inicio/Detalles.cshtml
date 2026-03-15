@@ -6,16 +6,49 @@
 
 <h2>Detalles de la Tarea</h2>
 
-<div>
-    <h3>@Model.Nombre</h3>
-    <p><strong>Fecha de Creación:</strong> @Model.FechaCreacion.ToString("yyyy-MM-dd")</p>
+<div class="card">
+    <div class="card-body">
+        <h3>@Model.Nombre</h3>
+        <p><strong>Descripción:</strong> @Model.Descripcion</p>
+        <p><strong>Fecha de Creación:</strong> @Model.FechaCreacion.ToString("yyyy-MM-dd")</p>
+        @if (Model.FechaVencimiento.HasValue)
+        {
+            <p><strong>Fecha de Vencimiento:</strong> @Model.FechaVencimiento.Value.ToString("yyyy-MM-dd")</p>
+        }
+        <p><strong>Estado:</strong> <span class="badge bg-@GetEstadoBadgeClass(Model.Estado)">@Model.Estado.ToString()</span></p>
+        <p><strong>Prioridad:</strong> <span class="badge bg-@GetPrioridadBadgeClass(Model.Prioridad)">@Model.Prioridad.ToString()</span></p>
+    </div>
 </div>
 
-<div>
+<div class="mt-3">
     <a href="@Url.Action("Editar", "Inicio", new { id = Model.Id })" class="btn btn-primary">Editar</a>
     <a href="@Url.Action("Eliminar", "Inicio", new { id = Model.Id })" class="btn btn-danger">Eliminar</a>
     <a href="@Url.Action("Index", "Inicio")" class="btn btn-secondary">Volver</a>
 </div>
+
+@functions {
+    private string GetEstadoBadgeClass(Tareas.Models.EstadoTarea estado)
+    {
+        return estado switch
+        {
+            Tareas.Models.EstadoTarea.Pendiente => "warning",
+            Tareas.Models.EstadoTarea.EnProgreso => "info",
+            Tareas.Models.EstadoTarea.Completada => "success",
+            _ => "secondary"
+        };
+    }
+
+    private string GetPrioridadBadgeClass(Tareas.Models.PrioridadTarea prioridad)
+    {
+        return prioridad switch
+        {
+            Tareas.Models.PrioridadTarea.Baja => "success",
+            Tareas.Models.PrioridadTarea.Media => "warning",
+            Tareas.Models.PrioridadTarea.Alta => "danger",
+            _ => "secondary"
+        };
+    }
+}
 
 
 
