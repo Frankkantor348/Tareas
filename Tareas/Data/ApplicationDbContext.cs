@@ -10,7 +10,33 @@ namespace Tareas.Data
             : base(options)
         {
         }
-        //poner aqui los modelos creados
-        public DbSet<Tarea> Tarea { get; set; }
+
+        public DbSet<Tarea> Tareas { get; set; }
+        public DbSet<Entrega> Entregas { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            // Configurar relaciones
+            builder.Entity<Entrega>()
+                .HasOne(e => e.Tarea)
+                .WithMany(t => t.Entregas)
+                .HasForeignKey(e => e.TareaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índices para mejorar rendimiento
+            builder.Entity<Tarea>()
+                .HasIndex(t => t.FechaLimite);
+
+            builder.Entity<Tarea>()
+                .HasIndex(t => t.DocenteId);
+
+            builder.Entity<Entrega>()
+                .HasIndex(e => e.EstudianteId);
+
+            builder.Entity<Entrega>()
+                .HasIndex(e => e.TareaId);
+        }
     }
 }

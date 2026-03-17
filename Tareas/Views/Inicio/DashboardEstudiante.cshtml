@@ -1,0 +1,86 @@
+﻿@model Tareas.Models.ViewModels.DashboardEstudianteViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Estudiante";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Panel de Control - Estudiante</h1>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card bg-info">
+                <div class="stat-number">@Model.TareasPendientes</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-success">
+                <div class="stat-number">@Model.TareasEntregadas</div>
+                <div class="stat-label">Entregadas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-primary">
+                <div class="stat-number">@Model.TareasCalificadas</div>
+                <div class="stat-label">Calificadas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-danger">
+                <div class="stat-number">@Model.TareasVencidas</div>
+                <div class="stat-label">Vencidas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tareas próximas a vencer -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Tareas Próximas a Vencer</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TareasProximas.Any())
+                    {
+                        <div class="row">
+                            @foreach (var tarea in Model.TareasProximas)
+                            {
+                                <div class="col-md-4 mb-3">
+                                    <div class="card @(tarea.ColorSemaforo == "amarillo" ? "border-warning" : "border-info")">
+                                        <div class="card-header bg-@tarea.ColorSemaforo text-white">
+                                            @tarea.Titulo
+                                        </div>
+                                        <div class="card-body">
+                                            <p>@tarea.Descripcion</p>
+                                            <p><strong>Límite:</strong> @tarea.FechaLimite.ToString("dd/MM/yyyy")</p>
+                                            <a asp-action="Detalles" asp-controller="Tareas" asp-route-id="@tarea.Id" class="btn btn-sm btn-primary">Ver detalles</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay tareas próximas a vencer.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlaces rápidos -->
+    <div class="row mt-4">
+        <div class="col">
+            <a asp-action="Index" asp-controller="Tareas" class="btn btn-primary">
+                <i class="bi bi-list-task"></i> Ver todas las tareas
+            </a>
+            <a asp-action="MisTareas" asp-controller="Tareas" class="btn btn-success ms-2">
+                <i class="bi bi-check-circle"></i> Mis entregas
+            </a>
+        </div>
+    </div>
+</div>

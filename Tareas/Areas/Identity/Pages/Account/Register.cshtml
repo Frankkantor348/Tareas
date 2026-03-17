@@ -1,0 +1,91 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Registro de Usuario";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nombre@ejemplo.com" />
+                            <label asp-for="Input.Email">Correo electrónico</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="contraseña" />
+                            <label asp-for="Input.Password">Contraseña</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirmar contraseña" />
+                            <label asp-for="Input.ConfirmPassword">Confirmar contraseña</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <!-- SELECTOR DE ROL -->
+                        <div class="mb-4">
+                            <label asp-for="Input.Rol" class="form-label fw-bold">Tipo de usuario</label>
+                            <select asp-for="Input.Rol" class="form-select form-select-lg" required>
+                                <option value="">-- Selecciona tu rol --</option>
+                                <option value="Estudiante">👨‍🎓 Estudiante</option>
+                                <option value="Docente">👨‍🏫 Docente</option>
+                            </select>
+                            <span asp-validation-for="Input.Rol" class="text-danger"></span>
+                            <div class="form-text">Selecciona el rol que tendrás en la plataforma.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-check me-2"></i>Registrarse
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">
+                                    <i class="fas fa-sign-in-alt me-1"></i>¿Ya tienes cuenta? Inicia sesión
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.ExternalLogins?.Count > 0)
+            {
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-secondary text-white text-center py-2">
+                        <h5 class="mb-0">O regístrate con</h5>
+                    </div>
+                    <div class="card-body p-3 text-center">
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                            <div>
+                                @foreach (var provider in Model.ExternalLogins!)
+                                {
+                                    <button type="submit" class="btn btn-outline-primary m-1" name="provider" value="@provider.Name" title="Regístrate usando tu cuenta de @provider.DisplayName">
+                                        <i class="fab fa-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
