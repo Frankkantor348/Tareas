@@ -72,9 +72,12 @@
 
     Abre un Pull Request
 
-Licencia
+ 📄 Licencia
 
-    Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más información
+    Este proyecto está bajo la **Licencia MIT**.  
+    Copyright (c) 2026 **Franklin Gutiérrez**
+    
+     Consulta el archivo [LICENSE](LICENSE) para más detalles.
 
 🙏 Agradecimientos
 
