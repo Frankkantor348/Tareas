@@ -1,0 +1,59 @@
+﻿@model Tareas.Models.ViewModels.EntregaViewModel
+
+@{
+    ViewData["Title"] = "Entregar Tarea";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="bi bi-upload"></i> Entregar: @ViewBag.TareaTitulo</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Crear" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="TareaId" />
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="ArchivoEntrega" class="form-label">Archivo de la tarea *</label>
+                            <input asp-for="ArchivoEntrega" class="form-control" type="file" accept=".pdf,.doc,.docx,.txt,.zip,.jpg,.png" />
+                            <div class="form-text">Formatos permitidos: PDF, DOC, DOCX, TXT, ZIP, JPG, PNG (máx. 10MB)</div>
+                            <span asp-validation-for="ArchivoEntrega" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ComentarioEstudiante" class="form-label">Comentario adicional (opcional)</label>
+                            <textarea asp-for="ComentarioEstudiante" class="form-control" rows="3" placeholder="Si tienes alguna observación sobre tu entrega..."></textarea>
+                            <span asp-validation-for="ComentarioEstudiante" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            Una vez entregada, la tarea quedará registrada y no podrás modificarla.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-lg"></i> Confirmar Entrega
+                            </button>
+                            <a asp-action="Detalles" asp-controller="Tareas" asp-route-id="@Model.TareaId" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

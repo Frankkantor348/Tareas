@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Tareas.Models.ViewModels.TareaEstudianteViewModel>
+
+@{
+    ViewData["Title"] = "Tareas Disponibles";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1><i class="bi bi-journal-check"></i> @ViewData["Title"]</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        @foreach (var tarea in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header @($"bg-{tarea.ColorSemaforo}") text-white">
+                        <h5 class="card-title mb-0">@tarea.Titulo</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">@tarea.Descripcion</p>
+                        <p class="small">
+                            <strong>Fecha límite:</strong> @tarea.FechaLimite.ToString("dd/MM/yyyy")
+                        </p>
+                        <p>
+                            @if (tarea.Entregada)
+                            {
+                                <span class="badge bg-success">
+                                    @(tarea.Calificada ? $"Calificada: {tarea.Calificacion}" : "Entregada")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning">Pendiente</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Detalles" asp-route-id="@tarea.Id" class="btn btn-primary btn-sm">Ver detalles</a>
+                        @if (!tarea.Entregada && tarea.ColorSemaforo != "rojo")
+                        {
+                            <a asp-controller="Entregas" asp-action="Crear" asp-route-id="@tarea.Id" class="btn btn-success btn-sm">Entregar</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

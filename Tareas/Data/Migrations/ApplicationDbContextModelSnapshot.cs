@@ -224,6 +224,55 @@ namespace Tareas.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Tareas.Models.Entrega", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Calificacion")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("ComentarioEstudiante")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EstudianteId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("FechaCalificacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaEntrega")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NombreArchivoOriginal")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("RetroalimentacionDocente")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("RutaArchivo")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("TareaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EstudianteId");
+
+                    b.HasIndex("TareaId");
+
+                    b.ToTable("Entregas");
+                });
+
             modelBuilder.Entity("Tareas.Models.Tarea", b =>
                 {
                     b.Property<int>("Id")
@@ -232,29 +281,41 @@ namespace Tareas.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Curso")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("Estado")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaVencimiento")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Nombre")
+                    b.Property<string>("DocenteId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Prioridad")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("FechaLimite")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaPublicacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InstruccionesAdicionales")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tarea");
+                    b.HasIndex("DocenteId");
+
+                    b.HasIndex("FechaLimite");
+
+                    b.ToTable("Tareas");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -306,6 +367,22 @@ namespace Tareas.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Tareas.Models.Entrega", b =>
+                {
+                    b.HasOne("Tareas.Models.Tarea", "Tarea")
+                        .WithMany("Entregas")
+                        .HasForeignKey("TareaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tarea");
+                });
+
+            modelBuilder.Entity("Tareas.Models.Tarea", b =>
+                {
+                    b.Navigation("Entregas");
                 });
 #pragma warning restore 612, 618
         }

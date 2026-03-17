@@ -1,165 +1,131 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Diagnostics;
-using System.Linq;  // Para usar Any()
-using System.Threading.Tasks;
+using System.Security.Claims;
 using Tareas.Data;
 using Tareas.Models;
+using Tareas.Models.ViewModels;
 
 namespace Tareas.Controllers
 {
+    [Authorize]
     public class InicioController : Controller
     {
-        private readonly ApplicationDbContext _contexto;
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public InicioController(ApplicationDbContext contexto)
+        public InicioController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            _contexto = contexto;
+            _context = context;
+            _userManager = userManager;
         }
 
-        // Acción GET para la lista de tareas
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        // GET: Inicio/Dashboard (Redirige según el rol)
+        public async Task<IActionResult> Dashboard()
         {
-            var tareas = await _contexto.Tarea.ToListAsync();
-            return View(tareas);
-        }
-
-        // Acción GET para la creación de una nueva tarea
-        [HttpGet]
-        public IActionResult Crear()
-        {
-            return View();
-        }
-
-        // Acción POST para procesar la creación de una nueva tarea
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(Tarea tarea)
-        {
-            if (!ModelState.IsValid)
+            if (User.IsInRole("Docente"))
             {
-                // Si no se ha especificado una fecha, asignar la fecha actual
-                if (tarea.FechaCreacion == DateTime.MinValue)
+                return await DashboardDocente();
+            }
+            else if (User.IsInRole("Estudiante"))
+            {
+                return await DashboardEstudiante();
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Dashboard para docente
+        private async Task<IActionResult> DashboardDocente()
+        {
+            var docenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var tareas = await _context.Tareas
+                .Where(t => t.DocenteId == docenteId)
+                .OrderByDescending(t => t.FechaPublicacion)
+                .ToListAsync();
+
+            var tareasIds = tareas.Select(t => t.Id).ToList();
+
+            var entregasPorTarea = await _context.Entregas
+                .Where(e => tareasIds.Contains(e.TareaId))
+                .GroupBy(e => e.TareaId)
+                .Select(g => new { TareaId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.TareaId, g => g.Count);
+
+            var totalEstudiantes = await _userManager.Users.CountAsync();
+
+            var model = new DashboardDocenteViewModel
+            {
+                TotalTareasPublicadas = tareas.Count,
+                TotalEntregasPendientes = await _context.Entregas.CountAsync(e => e.Calificacion == null),
+                TotalEstudiantes = totalEstudiantes,
+                TareasRecientes = tareas.Take(5).Select(t => new TareaResumenViewModel
                 {
-                    tarea.FechaCreacion = DateTime.Now;
-                }
-                return View(tarea);  // Regresar el formulario con los errores de validación
-            }
+                    Id = t.Id,
+                    Titulo = t.Titulo,
+                    FechaLimite = t.FechaLimite,
+                    EntregasRealizadas = entregasPorTarea.ContainsKey(t.Id) ? entregasPorTarea[t.Id] : 0,
+                    EntregasPendientes = totalEstudiantes - (entregasPorTarea.ContainsKey(t.Id) ? entregasPorTarea[t.Id] : 0)
+                }).ToList()
+            };
 
-            try
+            return View("DashboardDocente", model);
+        }
+
+        // Dashboard para estudiante
+        private async Task<IActionResult> DashboardEstudiante()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var tareas = await _context.Tareas
+                .OrderBy(t => t.FechaLimite)
+                .ToListAsync();
+
+            var entregasRealizadas = await _context.Entregas
+                .Where(e => e.EstudianteId == userId)
+                .Select(e => new { e.TareaId, e.Calificacion, e.FechaEntrega })
+                .ToDictionaryAsync(e => e.TareaId, e => e);
+
+            var hoy = DateTime.Now.Date;
+
+            var tareasViewModel = tareas.Select(t =>
             {
-                // Si la fecha de creación es nula o no es válida, asignar la fecha actual
-                if (tarea.FechaCreacion == DateTime.MinValue)
+                entregasRealizadas.TryGetValue(t.Id, out var entrega);
+                return new TareaEstudianteViewModel
                 {
-                    tarea.FechaCreacion = DateTime.Now;
-                }
+                    Id = t.Id,
+                    Titulo = t.Titulo,
+                    Descripcion = t.Descripcion,
+                    FechaPublicacion = t.FechaPublicacion,
+                    FechaLimite = t.FechaLimite,
+                    ColorSemaforo = t.ColorSemaforo,
+                    Entregada = entrega != null,
+                    FechaEntrega = entrega?.FechaEntrega,
+                    Calificada = entrega?.Calificacion.HasValue ?? false,
+                    Calificacion = entrega?.Calificacion
+                };
+            }).ToList();
 
-                _contexto.Tarea.Add(tarea);  // Agregar la tarea al contexto
-                await _contexto.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
+            var model = new DashboardEstudianteViewModel
             {
-                ModelState.AddModelError(string.Empty, "Ocurrió un error al guardar la tarea.");
-                return View(tarea);
-            }
+                TareasPendientes = tareasViewModel.Count(t => !t.Entregada && t.FechaLimite.Date >= hoy),
+                TareasEntregadas = tareasViewModel.Count(t => t.Entregada && !t.Calificada),
+                TareasCalificadas = tareasViewModel.Count(t => t.Calificada),
+                TareasVencidas = tareasViewModel.Count(t => !t.Entregada && t.FechaLimite.Date < hoy),
+                TareasProximas = tareasViewModel
+                    .Where(t => !t.Entregada && t.FechaLimite.Date >= hoy)
+                    .OrderBy(t => t.FechaLimite)
+                    .Take(5)
+                    .ToList()
+            };
+
+            return View("DashboardEstudiante", model);
         }
 
-        // Acción GET para ver los detalles de una tarea
-        [HttpGet]
-        public async Task<IActionResult> Detalles(int id)
-        {
-            var tarea = await _contexto.Tarea.FindAsync(id);
-            if (tarea == null)
-            {
-                return NotFound();  // Si no se encuentra la tarea, devolver error 404
-            }
-            return View(tarea);  // Devolvemos la vista con la tarea
-        }
-
-        // Acción GET para editar una tarea
-        [HttpGet]
-        public async Task<IActionResult> Editar(int id)
-        {
-            var tarea = await _contexto.Tarea.FindAsync(id);
-            if (tarea == null)
-            {
-                return NotFound();  // Si no se encuentra la tarea, devolver error 404
-            }
-            return View(tarea);
-        }
-
-        // Acción POST para procesar la edición de una tarea
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(int id, Tarea tarea)
-        {
-            if (id != tarea.Id)
-            {
-                return NotFound();  // Si el ID no coincide, devolver error 404
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(tarea);  // Si no es válido, regresar al formulario de edición
-            }
-
-            try
-            {
-                // Si la fecha de creación es nula o no es válida, asignar la fecha actual
-                if (tarea.FechaCreacion == DateTime.MinValue)
-                {
-                    tarea.FechaCreacion = DateTime.Now;
-                }
-
-                _contexto.Update(tarea);  // Actualizamos la tarea
-                await _contexto.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));  // Redirigimos al índice
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_contexto.Tarea.Any(t => t.Id == id))
-                {
-                    return NotFound();  // Si la tarea no existe, devolver error 404
-                }
-                else
-                {
-                    throw;  // Propagamos cualquier otro error
-                }
-            }
-        }
-
-        // Acción GET para eliminar una tarea
-        [HttpGet]
-        public async Task<IActionResult> Eliminar(int id)
-        {
-            var tarea = await _contexto.Tarea.FindAsync(id);
-            if (tarea == null)
-            {
-                return NotFound();  // Si no se encuentra la tarea, devolver error 404
-            }
-            return View(tarea);
-        }
-
-        // Acción POST para procesar la eliminación de una tarea
-        [HttpPost, ActionName("Eliminar")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EliminarConfirmado(int id)
-        {
-            var tarea = await _contexto.Tarea.FindAsync(id);
-            if (tarea == null)
-            {
-                return NotFound();  // Si no se encuentra la tarea, devolver error 404
-            }
-
-            _contexto.Tarea.Remove(tarea);  // Eliminamos la tarea
-            await _contexto.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));  // Redirigimos al índice
-        }
-
-        // Acción para la privacidad (de ejemplo)
+        // Acción para la privacidad (mantenida del original)
         public IActionResult Privacy()
         {
             return View();
@@ -172,10 +138,10 @@ namespace Tareas.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
+
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
 }
-
-
-
-
-
-

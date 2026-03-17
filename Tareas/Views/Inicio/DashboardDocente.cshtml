@@ -1,0 +1,85 @@
+﻿@model Tareas.Models.ViewModels.DashboardDocenteViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Docente";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Panel de Control - Docente</h1>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card bg-primary">
+                <div class="stat-number">@Model.TotalTareasPublicadas</div>
+                <div class="stat-label">Tareas Publicadas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-warning">
+                <div class="stat-number">@Model.TotalEntregasPendientes</div>
+                <div class="stat-label">Entregas Pendientes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-success">
+                <div class="stat-number">@Model.TotalEstudiantes</div>
+                <div class="stat-label">Estudiantes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-info">
+                <div class="stat-number">@Model.TareasRecientes.Count</div>
+                <div class="stat-label">Tareas Recientes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón crear tarea -->
+    <div class="row mt-4">
+        <div class="col">
+            <a asp-action="Crear" asp-controller="Tareas" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> Crear Nueva Tarea
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista de tareas recientes -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Tareas Recientes</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Fecha Límite</th>
+                                <th>Entregas</th>
+                                <th>Pendientes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tarea in Model.TareasRecientes)
+                            {
+                                <tr>
+                                    <td>@tarea.Titulo</td>
+                                    <td>@tarea.FechaLimite.ToString("dd/MM/yyyy")</td>
+                                    <td>@tarea.EntregasRealizadas</td>
+                                    <td>@tarea.EntregasPendientes</td>
+                                    <td>
+                                        <a asp-action="Editar" asp-controller="Tareas" asp-route-id="@tarea.Id" class="btn btn-sm btn-warning">Editar</a>
+                                        <a asp-action="Tarea" asp-controller="Entregas" asp-route-id="@tarea.Id" class="btn btn-sm btn-info">Ver entregas</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

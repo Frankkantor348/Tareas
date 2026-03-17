@@ -13,30 +13,100 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="@Url.Action("Index", "Inicio")">INICIO</a>
+                <a class="navbar-brand" href="@Url.Action("Dashboard", "Inicio")">INICIO</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                           @*  <a class="nav-link active" href="@Url.Action("Index", "Inicio")">
-                                Inicio *@
-                            @*     <span class="visually-hidden">(current)</span>
-                            </a> *@
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Docente"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@Url.Action("Crear", "Tareas")">
+                                        <i class="fas fa-plus-circle"></i> Crear Tarea
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Estudiante"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@Url.Action("Index", "Tareas")">
+                                        <i class="fas fa-list"></i> Tareas Disponibles
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@Url.Action("MisTareas", "Tareas")">
+                                        <i class="fas fa-check-circle"></i> Mis Entregas
+                                    </a>
+                                </li>
+                            }
+                        }
                     </ul>
-                    <partial name="_LoginPartial" />
-                    @* <form class="d-flex" action="@Url.Action("Index", "Inicio")" method="get">
-                        <input class="form-control me-sm-2" type="search" placeholder="Buscar tarea" name="search" />
-                        <button class="btn btn-secondary my-2 my-sm-0" type="submit">Buscar</button>
-                    </form> *@
+
+                    <!-- Menú de usuario y cierre de sesión -->
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <span class="navbar-text text-white me-3">
+                                    <i class="fas fa-user"></i> @User.Identity.Name
+                                </span>
+                            </li>
+                            <li class="nav-item">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout"
+                                      asp-route-returnUrl="@Url.Action("Dashboard", "Inicio", new { area = "" })">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="nav-link btn btn-link text-white">
+                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
+                                    <i class="fas fa-user-plus"></i> Registrarse
+                                </a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </nav>
     </header>
 
     <div class="container">
+        <!-- Mensajes de alerta -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Warning"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
@@ -44,7 +114,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Tareas - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - Tareas - <a asp-controller="Inicio" asp-action="Privacy">Privacidad</a>
         </div>
     </footer>
 
@@ -56,4 +126,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

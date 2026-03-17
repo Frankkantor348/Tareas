@@ -20,3 +20,35 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+    .stat-card .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .stat-card .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+.bg-verde {
+    background-color: #28a745 !important;
+}
+
+.bg-amarillo {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.bg-rojo {
+    background-color: #dc3545 !important;
+}
