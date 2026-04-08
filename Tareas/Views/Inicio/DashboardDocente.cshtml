@@ -29,7 +29,7 @@
         </div>
         <div class="col-md-3">
             <div class="stat-card bg-info">
-                <div class="stat-number">@Model.TareasRecientes.Count</div>
+                <div class="stat-number">@(Model.TareasRecientes?.Count ?? 0)</div>
                 <div class="stat-label">Tareas Recientes</div>
             </div>
         </div>
@@ -52,32 +52,39 @@
                     <h5>Tareas Recientes</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Título</th>
-                                <th>Fecha Límite</th>
-                                <th>Entregas</th>
-                                <th>Pendientes</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var tarea in Model.TareasRecientes)
-                            {
+                    @if (Model.TareasRecientes != null && Model.TareasRecientes.Any())
+                    {
+                        <table class="table table-striped">
+                            <thead>
                                 <tr>
-                                    <td>@tarea.Titulo</td>
-                                    <td>@tarea.FechaLimite.ToString("dd/MM/yyyy")</td>
-                                    <td>@tarea.EntregasRealizadas</td>
-                                    <td>@tarea.EntregasPendientes</td>
-                                    <td>
-                                        <a asp-action="Editar" asp-controller="Tareas" asp-route-id="@tarea.Id" class="btn btn-sm btn-warning">Editar</a>
-                                        <a asp-action="Tarea" asp-controller="Entregas" asp-route-id="@tarea.Id" class="btn btn-sm btn-info">Ver entregas</a>
-                                    </td>
+                                    <th>Título</th>
+                                    <th>Fecha Límite</th>
+                                    <th>Entregas</th>
+                                    <th>Pendientes</th>
+                                    <th>Acciones</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var tarea in Model.TareasRecientes)
+                                {
+                                    <tr>
+                                        <td>@tarea.Titulo</td>
+                                        <td>@tarea.FechaLimite.ToString("dd/MM/yyyy")</td>
+                                        <td>@tarea.EntregasRealizadas</td>
+                                        <td>@tarea.EntregasPendientes</td>
+                                        <td>
+                                            <a asp-action="Editar" asp-controller="Tareas" asp-route-id="@tarea.Id" class="btn btn-sm btn-warning">Editar</a>
+                                            <a asp-action="Tarea" asp-controller="Entregas" asp-route-id="@tarea.Id" class="btn btn-sm btn-info">Ver entregas</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay tareas recientes.</p>
+                    }
                 </div>
             </div>
         </div>

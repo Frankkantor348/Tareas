@@ -37,7 +37,6 @@ namespace Tareas.Controllers
                 .OrderBy(t => t.FechaLimite)
                 .ToListAsync();
 
-            // Usa:
             var entregasList = await _context.Entregas
                 .Where(e => e.EstudianteId == userId)
                 .Select(e => e.TareaId)
@@ -45,19 +44,21 @@ namespace Tareas.Controllers
             var entregasRealizadas = entregasList.ToHashSet();
 
             var tareasViewModel = tareas.Select(t => new TareaEstudianteViewModel
-            {
-                Id = t.Id,
-                Titulo = t.Titulo,
-                Descripcion = t.Descripcion.Length > 100
-                    ? t.Descripcion[..100] + "..."
-                    : t.Descripcion,
-                FechaPublicacion = t.FechaPublicacion,
-                FechaLimite = t.FechaLimite,
-                InstruccionesAdicionales = t.InstruccionesAdicionales,
-                ColorSemaforo = t.ColorSemaforo,
-                Entregada = entregasRealizadas.Contains(t.Id)
-            }).ToList();
-
+{
+    Id = t.Id,
+    Titulo = t.Titulo,
+    Descripcion = t.Descripcion.Length > 100
+        ? t.Descripcion[..100] + "..."
+        : t.Descripcion,
+    FechaPublicacion = t.FechaPublicacion,
+    FechaLimite = t.FechaLimite,
+    // InstruccionesAdicionales = t.InstruccionesAdicionales, // ← Comentado si no existe en el ViewModel
+    ColorSemaforo = t.ColorSemaforo,
+    Entregada = entregasRealizadas.Contains(t.Id),
+    RutaArchivoApoyo = t.RutaArchivoApoyo,
+    NombreArchivoApoyo = t.NombreArchivoApoyo,
+    TipoArchivoApoyo = t.TipoArchivoApoyo
+}).ToList();
             return View(tareasViewModel);
         }
 
@@ -83,7 +84,7 @@ namespace Tareas.Controllers
             return View(new TareaViewModel());
         }
 
-        // POST: Tareas/Crear
+        // POST: Tareas/Crear (con soporte para archivo de apoyo)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Docente")]
@@ -109,6 +110,49 @@ namespace Tareas.Controllers
                     DocenteId = docenteId ?? string.Empty
                 };
 
+                // PROCESAR ARCHIVO DE APOYO
+                if (model.ArchivoApoyo != null && model.ArchivoApoyo.Length > 0)
+                {
+                    // Validar extensión
+                    var extension = Path.GetExtension(model.ArchivoApoyo.FileName).ToLower();
+                    var extensionesPermitidas = new[] { ".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xls", ".xlsx", ".jpg", ".png", ".zip" };
+
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        ModelState.AddModelError("ArchivoApoyo", "Tipo de archivo no permitido");
+                        return View(model);
+                    }
+
+                    // Validar tamaño (20MB max)
+                    if (model.ArchivoApoyo.Length > 20 * 1024 * 1024)
+                    {
+                        ModelState.AddModelError("ArchivoApoyo", "El archivo no puede ser mayor a 20MB");
+                        return View(model);
+                    }
+
+                    // Crear nombre único
+                    var nombreArchivo = $"{Guid.NewGuid()}{extension}";
+                    var carpeta = Path.Combine("uploads", "material-apoyo");
+                    var rutaCarpeta = Path.Combine(_webHostEnvironment.WebRootPath, carpeta);
+
+                    if (!Directory.Exists(rutaCarpeta))
+                    {
+                        Directory.CreateDirectory(rutaCarpeta);
+                    }
+
+                    var rutaCompleta = Path.Combine(rutaCarpeta, nombreArchivo);
+                    using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                    {
+                        await model.ArchivoApoyo.CopyToAsync(stream);
+                    }
+
+                    tarea.RutaArchivoApoyo = Path.Combine("/", carpeta, nombreArchivo).Replace("\\", "/");
+                    tarea.NombreArchivoApoyo = model.ArchivoApoyo.FileName;
+                    tarea.TipoArchivoApoyo = extension;
+                    tarea.TamañoArchivoApoyo = model.ArchivoApoyo.Length;
+                    tarea.FechaSubidaArchivo = DateTime.Now;
+                }
+
                 _context.Tareas.Add(tarea);
                 await _context.SaveChangesAsync();
 
@@ -126,6 +170,7 @@ namespace Tareas.Controllers
         public async Task<IActionResult> Detalles(int id)
         {
             var tarea = await _context.Tareas
+                .Include(t => t.Entregas)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (tarea == null)
@@ -173,13 +218,18 @@ namespace Tareas.Controllers
                 Descripcion = tarea.Descripcion,
                 FechaLimite = tarea.FechaLimite,
                 InstruccionesAdicionales = tarea.InstruccionesAdicionales,
-                Curso = tarea.Curso
+                Curso = tarea.Curso,
+                // Cargar datos del archivo existente
+                RutaArchivoApoyo = tarea.RutaArchivoApoyo,
+                NombreArchivoApoyo = tarea.NombreArchivoApoyo,
+                TipoArchivoApoyo = tarea.TipoArchivoApoyo,
+                TamañoArchivoApoyo = tarea.TamañoArchivoApoyo
             };
 
             return View(model);
         }
 
-        // POST: Tareas/Editar/5
+        // POST: Tareas/Editar/5 (con soporte para archivo de apoyo)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Docente")]
@@ -214,6 +264,59 @@ namespace Tareas.Controllers
                 tarea.FechaLimite = model.FechaLimite;
                 tarea.InstruccionesAdicionales = model.InstruccionesAdicionales?.Trim();
                 tarea.Curso = model.Curso?.Trim();
+
+                // PROCESAR NUEVO ARCHIVO DE APOYO (si se subió)
+                if (model.ArchivoApoyo != null && model.ArchivoApoyo.Length > 0)
+                {
+                    // Validar extensión
+                    var extension = Path.GetExtension(model.ArchivoApoyo.FileName).ToLower();
+                    var extensionesPermitidas = new[] { ".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xls", ".xlsx", ".jpg", ".png", ".zip" };
+
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        ModelState.AddModelError("ArchivoApoyo", "Tipo de archivo no permitido");
+                        return View(model);
+                    }
+
+                    // Validar tamaño (20MB max)
+                    if (model.ArchivoApoyo.Length > 20 * 1024 * 1024)
+                    {
+                        ModelState.AddModelError("ArchivoApoyo", "El archivo no puede ser mayor a 20MB");
+                        return View(model);
+                    }
+
+                    // Eliminar archivo anterior si existe
+                    if (!string.IsNullOrEmpty(tarea.RutaArchivoApoyo))
+                    {
+                        var rutaAnterior = Path.Combine(_webHostEnvironment.WebRootPath, tarea.RutaArchivoApoyo.TrimStart('/'));
+                        if (System.IO.File.Exists(rutaAnterior))
+                        {
+                            System.IO.File.Delete(rutaAnterior);
+                        }
+                    }
+
+                    // Guardar nuevo archivo
+                    var nombreArchivo = $"{Guid.NewGuid()}{extension}";
+                    var carpeta = Path.Combine("uploads", "material-apoyo");
+                    var rutaCarpeta = Path.Combine(_webHostEnvironment.WebRootPath, carpeta);
+
+                    if (!Directory.Exists(rutaCarpeta))
+                    {
+                        Directory.CreateDirectory(rutaCarpeta);
+                    }
+
+                    var rutaCompleta = Path.Combine(rutaCarpeta, nombreArchivo);
+                    using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                    {
+                        await model.ArchivoApoyo.CopyToAsync(stream);
+                    }
+
+                    tarea.RutaArchivoApoyo = Path.Combine("/", carpeta, nombreArchivo).Replace("\\", "/");
+                    tarea.NombreArchivoApoyo = model.ArchivoApoyo.FileName;
+                    tarea.TipoArchivoApoyo = extension;
+                    tarea.TamañoArchivoApoyo = model.ArchivoApoyo.Length;
+                    tarea.FechaSubidaArchivo = DateTime.Now;
+                }
 
                 _context.Update(tarea);
                 await _context.SaveChangesAsync();
@@ -267,6 +370,16 @@ namespace Tareas.Controllers
                         {
                             System.IO.File.Delete(fullPath);
                         }
+                    }
+                }
+
+                // Eliminar archivo de apoyo de la tarea si existe
+                if (!string.IsNullOrEmpty(tarea.RutaArchivoApoyo))
+                {
+                    var rutaArchivo = Path.Combine(_webHostEnvironment.WebRootPath, tarea.RutaArchivoApoyo.TrimStart('/'));
+                    if (System.IO.File.Exists(rutaArchivo))
+                    {
+                        System.IO.File.Delete(rutaArchivo);
                     }
                 }
 

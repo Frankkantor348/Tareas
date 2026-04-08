@@ -44,6 +44,25 @@ namespace Tareas.Models
         [StringLength(50, ErrorMessage = "El curso no puede exceder 50 caracteres")]
         public string? Curso { get; set; }
 
+        // 🔥 NUEVOS CAMPOS PARA ARCHIVO DE APOYO DEL PROFESOR
+        [Display(Name = "Ruta del archivo de apoyo")]
+        [StringLength(500, ErrorMessage = "La ruta no puede exceder 500 caracteres")]
+        public string? RutaArchivoApoyo { get; set; }
+
+        [Display(Name = "Nombre del archivo de apoyo")]
+        [StringLength(255, ErrorMessage = "El nombre no puede exceder 255 caracteres")]
+        public string? NombreArchivoApoyo { get; set; }
+
+        [Display(Name = "Tipo de archivo")]
+        [StringLength(50, ErrorMessage = "El tipo no puede exceder 50 caracteres")]
+        public string? TipoArchivoApoyo { get; set; }
+
+        [Display(Name = "Tamaño del archivo (bytes)")]
+        public long? TamañoArchivoApoyo { get; set; }
+
+        [Display(Name = "Fecha de subida del archivo")]
+        public DateTime? FechaSubidaArchivo { get; set; }
+
         // Propiedad calculada para el semáforo
         [Display(Name = "Estado de urgencia")]
         public string ColorSemaforo

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,7 @@ namespace Tareas.Controllers
             _userManager = userManager;
         }
 
-        // GET: Inicio/Dashboard (Redirige seg�n el rol)
+        // GET: Inicio/Dashboard (Redirige según el rol)
         public async Task<IActionResult> Dashboard()
         {
             if (User.IsInRole("Docente"))
@@ -105,7 +105,10 @@ namespace Tareas.Controllers
                     Entregada = entrega != null,
                     FechaEntrega = entrega?.FechaEntrega,
                     Calificada = entrega?.Calificacion.HasValue ?? false,
-                    Calificacion = entrega?.Calificacion
+                    Calificacion = entrega?.Calificacion,
+                    RutaArchivoApoyo = t.RutaArchivoApoyo,
+                    NombreArchivoApoyo = t.NombreArchivoApoyo,
+                    TipoArchivoApoyo = t.TipoArchivoApoyo
                 };
             }).ToList();
 
@@ -125,13 +128,126 @@ namespace Tareas.Controllers
             return View("DashboardEstudiante", model);
         }
 
-        // Acci�n para la privacidad (mantenida del original)
+        // NUEVO: Dashboard de estadísticas (solo para docentes)
+        [Authorize(Roles = "Docente")]
+        public async Task<IActionResult> DashboardEstadisticas()
+        {
+            var model = new DashboardStatsViewModel();
+
+            // Total de usuarios por rol
+            var estudiantes = await _userManager.GetUsersInRoleAsync("Estudiante");
+            var docentes = await _userManager.GetUsersInRoleAsync("Docente");
+
+            model.TotalEstudiantes = estudiantes.Count;
+            model.TotalDocentes = docentes.Count;
+
+            // Total de tareas y entregas
+            model.TotalTareas = await _context.Tareas.CountAsync();
+            model.TotalEntregas = await _context.Entregas.CountAsync();
+            model.EntregasPendientes = await _context.Entregas.CountAsync(e => e.Calificacion == null);
+            model.EntregasCalificadas = await _context.Entregas.CountAsync(e => e.Calificacion != null);
+
+            // Tareas por estado (semáforo)
+            var tareas = await _context.Tareas.ToListAsync();
+            model.TareasPorEstado = tareas
+                .GroupBy(t => t.ColorSemaforo)
+                .Select(g => new ChartData
+                {
+                    Label = g.Key switch
+                    {
+                        "verde" => "Con tiempo",
+                        "amarillo" => "Próximas a vencer",
+                        "rojo" => "Vencidas",
+                        _ => g.Key
+                    },
+                    Value = g.Count(),
+                    Color = g.Key switch
+                    {
+                        "verde" => "#28a745",
+                        "amarillo" => "#ffc107",
+                        "rojo" => "#dc3545",
+                        _ => "#6c757d"
+                    }
+                }).ToList();
+
+            // Si no hay tareas, agregar datos por defecto
+            if (!model.TareasPorEstado.Any())
+            {
+                model.TareasPorEstado.Add(new ChartData { Label = "Sin tareas", Value = 1, Color = "#6c757d" });
+            }
+
+            // Entregas de los últimos 7 días
+            model.EntregasPorDia = new List<ChartData>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var fecha = DateTime.Now.Date.AddDays(-i);
+                var entregas = await _context.Entregas.CountAsync(e => e.FechaEntrega.Date == fecha);
+                model.EntregasPorDia.Add(new ChartData
+                {
+                    Label = fecha.ToString("dd/MM"),
+                    Value = entregas
+                });
+            }
+
+            // 🔥 CALIFICACIONES POR CURSO - CORREGIDO
+            var cursos = await _context.Tareas
+                .Where(t => t.Curso != null && t.Entregas.Any(e => e.Calificacion.HasValue))
+                .Select(t => t.Curso)
+                .Distinct()
+                .ToListAsync();
+
+            model.CalificacionesPromedioPorCurso = new List<ChartData>();
+
+            foreach (var curso in cursos.Take(5))
+            {
+                var entregasCalificadas = await _context.Entregas
+    .Include(e => e.Tarea)
+    .Where(e => e.Tarea != null && e.Tarea.Curso == curso && e.Calificacion.HasValue)
+    .Select(e => e.Calificacion!.Value)
+    .ToListAsync();
+                if (entregasCalificadas.Any())
+                {
+                    var promedio = (int)Math.Round(entregasCalificadas.Average());
+                    model.CalificacionesPromedioPorCurso.Add(new ChartData
+                    {
+                        Label = curso ?? "Sin curso",
+                        Value = promedio,
+                        Color = ObtenerColorAleatorio()
+                    });
+                }
+            }
+
+            // Si no hay calificaciones, agregar dato por defecto
+            if (!model.CalificacionesPromedioPorCurso.Any())
+            {
+                model.CalificacionesPromedioPorCurso.Add(new ChartData
+                {
+                    Label = "Sin datos",
+                    Value = 0,
+                    Color = "#6c757d"
+                });
+            }
+
+            return View(model);
+        }
+
+        // Método auxiliar para generar colores aleatorios
+        private string ObtenerColorAleatorio()
+        {
+            var random = new Random();
+            var colores = new[] { "#007bff", "#28a745", "#ffc107", "#17a2b8", "#6610f2", "#e83e8c", "#fd7e14" };
+            return colores[random.Next(colores.Length)];
+        }
+
+        // Acción para la privacidad (mantenida del original)
+        [AllowAnonymous]
         public IActionResult Privacy()
         {
             return View();
         }
 
-        // Acci�n para manejar errores
+        // Acción para manejar errores
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

@@ -1,0 +1,191 @@
+﻿@model Tareas.Models.ViewModels.DashboardStatsViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Estadístico";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="mb-4"><i class="fas fa-chart-pie me-2"></i>@ViewData["Title"]</h1>
+
+    <!-- Tarjetas de resumen -->
+    <div class="row">
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h6 class="card-title">Estudiantes</h6>
+                    <h3>@Model.TotalEstudiantes</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h6 class="card-title">Docentes</h6>
+                    <h3>@Model.TotalDocentes</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h6 class="card-title">Tareas</h6>
+                    <h3>@Model.TotalTareas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h6 class="card-title">Entregas</h6>
+                    <h3>@Model.TotalEntregas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h6 class="card-title">Pendientes</h6>
+                    <h3>@Model.EntregasPendientes</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-white bg-dark">
+                <div class="card-body">
+                    <h6 class="card-title">Calificadas</h6>
+                    <h3>@Model.EntregasCalificadas</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Tareas por Estado</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartTareas" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Entregas Últimos 7 Días</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartEntregas" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Promedio por Curso</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartCalificaciones" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón volver -->
+    <div class="row mt-2">
+        <div class="col">
+            <a asp-action="Dashboard" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard Principal
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Preparar datos para los gráficos
+        @{
+            var tareasLabels = System.Text.Json.JsonSerializer.Serialize(Model.TareasPorEstado.Select(x => x.Label));
+            var tareasValues = System.Text.Json.JsonSerializer.Serialize(Model.TareasPorEstado.Select(x => x.Value));
+            var tareasColors = System.Text.Json.JsonSerializer.Serialize(Model.TareasPorEstado.Select(x => x.Color));
+
+            var entregasLabels = System.Text.Json.JsonSerializer.Serialize(Model.EntregasPorDia.Select(x => x.Label));
+            var entregasValues = System.Text.Json.JsonSerializer.Serialize(Model.EntregasPorDia.Select(x => x.Value));
+
+            var calificacionesLabels = System.Text.Json.JsonSerializer.Serialize(Model.CalificacionesPromedioPorCurso.Select(x => x.Label));
+            var calificacionesValues = System.Text.Json.JsonSerializer.Serialize(Model.CalificacionesPromedioPorCurso.Select(x => x.Value));
+            var calificacionesColors = System.Text.Json.JsonSerializer.Serialize(Model.CalificacionesPromedioPorCurso.Select(x => x.Color));
+        }
+
+        // Gráfico 1: Tareas por Estado (Circular)
+        const ctx1 = document.getElementById('chartTareas').getContext('2d');
+        new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: @Html.Raw(tareasLabels),
+                datasets: [{
+                    data: @Html.Raw(tareasValues),
+                    backgroundColor: @Html.Raw(tareasColors),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Gráfico 2: Entregas por Día (Línea)
+        const ctx2 = document.getElementById('chartEntregas').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(entregasLabels),
+                datasets: [{
+                    label: 'Entregas',
+                    data: @Html.Raw(entregasValues),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Gráfico 3: Calificaciones por Curso (Barras)
+        const ctx3 = document.getElementById('chartCalificaciones').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(calificacionesLabels),
+                datasets: [{
+                    label: 'Promedio (0-100)',
+                    data: @Html.Raw(calificacionesValues),
+                    backgroundColor: @Html.Raw(calificacionesColors),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+}
