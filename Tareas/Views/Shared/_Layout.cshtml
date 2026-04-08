@@ -29,6 +29,14 @@
                                     </a>
                                 </li>
                             }
+                            @if (User.IsInRole("Docente"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-action="DashboardEstadisticas" asp-controller="Inicio">
+                                        <i class="fas fa-chart-pie"></i> Estadísticas
+                                    </a>
+                                </li>
+                            }
                             @if (User.IsInRole("Estudiante"))
                             {
                                 <li class="nav-item">
@@ -114,10 +122,10 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - Tareas - <a asp-controller="Inicio" asp-action="Privacy">Privacidad</a>
+            &copy; 2026 - EduTech  Transformando la educación a través de la tecnología - <a asp-controller="Inicio" asp-action="Privacy">Privacidad</a>
         </div>
     </footer>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

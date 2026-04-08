@@ -43,7 +43,7 @@
                     <h5>Tareas Próximas a Vencer</h5>
                 </div>
                 <div class="card-body">
-                    @if (Model.TareasProximas.Any())
+                    @if (Model.TareasProximas != null && Model.TareasProximas.Any())
                     {
                         <div class="row">
                             @foreach (var tarea in Model.TareasProximas)

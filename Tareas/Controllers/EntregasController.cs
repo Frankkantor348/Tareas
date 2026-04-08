@@ -49,7 +49,7 @@ namespace Tareas.Controllers
                 .OrderBy(e => e.FechaEntrega)
                 .ToListAsync();
 
-            // Obtener nombres de estudiantes (en un sistema real, tendrías una tabla de perfiles)
+            // Obtener nombres de estudiantes
             var estudiantesIds = entregas.Select(e => e.EstudianteId).Distinct().ToList();
             var estudiantes = await _userManager.Users
                 .Where(u => estudiantesIds.Contains(u.Id))

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace Tareas.Models.ViewModels
 {
@@ -31,6 +32,21 @@ namespace Tareas.Models.ViewModels
         [Display(Name = "Curso/Grado")]
         [StringLength(50)]
         public string? Curso { get; set; }
+
+        [Display(Name = "Material de apoyo (opcional)")]
+        public IFormFile? ArchivoApoyo { get; set; }
+
+        [Display(Name = "Ruta del archivo")]
+        public string? RutaArchivoApoyo { get; set; }
+
+        [Display(Name = "Nombre del archivo")]
+        public string? NombreArchivoApoyo { get; set; }
+
+        [Display(Name = "Tipo de archivo")]
+        public string? TipoArchivoApoyo { get; set; }
+
+        [Display(Name = "Tamaño del archivo")]
+        public long? TamañoArchivoApoyo { get; set; }
     }
 
     /// <summary>
@@ -49,6 +65,9 @@ namespace Tareas.Models.ViewModels
         public DateTime? FechaEntrega { get; set; }
         public bool Calificada { get; set; }
         public decimal? Calificacion { get; set; }
+        public string? RutaArchivoApoyo { get; set; }
+        public string? NombreArchivoApoyo { get; set; }
+        public string? TipoArchivoApoyo { get; set; }
     }
 
     /// <summary>
@@ -74,6 +93,9 @@ namespace Tareas.Models.ViewModels
         public List<TareaResumenViewModel> TareasRecientes { get; set; } = new();
     }
 
+    /// <summary>
+    /// Resumen de tarea para dashboards del docente
+    /// </summary>
     public class TareaResumenViewModel
     {
         public int Id { get; set; }
@@ -81,5 +103,34 @@ namespace Tareas.Models.ViewModels
         public DateTime FechaLimite { get; set; }
         public int EntregasRealizadas { get; set; }
         public int EntregasPendientes { get; set; }
+    }
+
+    // ========== NUEVAS CLASES AGREGADAS ==========
+
+    /// <summary>
+    /// ViewModel para el Dashboard de Estadísticas (accesible para docentes)
+    /// </summary>
+    public class DashboardStatsViewModel
+    {
+        public int TotalEstudiantes { get; set; }
+        public int TotalDocentes { get; set; }
+        public int TotalTareas { get; set; }
+        public int TotalEntregas { get; set; }
+        public int EntregasPendientes { get; set; }
+        public int EntregasCalificadas { get; set; }
+        public List<ChartData> TareasPorEstado { get; set; } = new();
+        public List<ChartData> EntregasPorDia { get; set; } = new();
+        public List<ChartData> CalificacionesPromedioPorCurso { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Clase para datos de gráficos
+    /// </summary>
+    public class ChartData
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Value { get; set; }
+        public string Color { get; set; } = string.Empty;
+        public string? Tooltip { get; set; }
     }
 }
